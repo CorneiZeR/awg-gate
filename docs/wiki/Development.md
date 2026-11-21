@@ -42,6 +42,11 @@ A behaviour change carries a test that fails without it.
 - `amneziawg-tools` is pinned by tag **and** commit in the `Dockerfile`; the weekly
   *upstream* workflow opens a pull request when a new release appears.
 - Base images are pinned by digest; Dependabot raises them.
+- Dependabot runs daily. Its patch and minor pull requests merge by themselves once every
+  required check is green (*Dependabot auto-merge* workflow); a major one waits for a person.
+- A merged update reaches users only in a new image: when it changes the image (Go modules,
+  the `Dockerfile`), release a patch version. The daily *scan* of the published image fails
+  when a fix exists that a rebuild would pick up - that is the signal to release.
 
 ## Releasing
 
