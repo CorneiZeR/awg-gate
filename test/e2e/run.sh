@@ -59,9 +59,16 @@ cli issue person dave laptop --hub-info hub.json --gate config/gate.yaml --reach
 # dave's client speaks plain WireGuard: the same keys without the obfuscation lines.
 grep -v -E '^(Jc|Jmin|Jmax|S[1-4]|H[1-4]|HeaderProtectionKey) =' "$WORK/clients/dave-laptop.conf" >"$WORK/clients/dave-plain.conf"
 cli check --config config/gate.yaml
+# The CLI ran as this user and wrote 0600 files; the daemons run as root without
+# CAP_DAC_OVERRIDE and cannot read another user's 0600 file. A real deployment
+# installs them root-owned; the bench just lets everyone read its throwaway keys.
+chmod -R a+rX "$WORK"
 
 step "start the bench"
-"${compose[@]}" up -d --quiet-pull >/dev/null 2>&1
+if ! out="$("${compose[@]}" up -d --quiet-pull 2>&1)"; then
+	printf '%s\n' "$out" | tail -20
+	exit 1
+fi
 
 on() { local who="$1"; shift; "${compose[@]}" exec -T "$who" "$@"; }
 get() { on "$1" wget -qO- -T 3 "$2" 2>&1; }

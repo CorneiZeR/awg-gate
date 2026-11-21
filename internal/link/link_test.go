@@ -63,4 +63,3 @@ func TestStopTerminatesARunningProcess(t *testing.T) {
 		t.Fatal("Exited is not closed after Stop")
 	}
 }
-
