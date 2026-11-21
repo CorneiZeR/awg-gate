@@ -37,7 +37,7 @@ administer from; keep `gate.yaml` in a private git repository.
 On your machine, in the directory with `gate.yaml` and `hub.json`:
 
 ```shell
-alias awg-gate='docker run --rm -it -v "$PWD:/work" -w /work --user "$(id -u):$(id -g)" ghcr.io/corneizer/awg-gate:0.1.0'
+alias awg-gate='docker run --rm -it -v "$PWD:/work" -w /work --user "$(id -u):$(id -g)" ghcr.io/corneizer/awg-gate:0.2.0'
 
 awg-gate issue server shop-dev --hub-info hub.json --gate gate.yaml --ports 443,80
 awg-gate issue person alice laptop --hub-info hub.json --gate gate.yaml --reach shop-dev

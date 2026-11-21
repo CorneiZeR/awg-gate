@@ -5,7 +5,7 @@
 
 services:
   awg-gate:
-    image: ghcr.io/corneizer/awg-gate:0.1.0
+    image: ghcr.io/corneizer/awg-gate:0.2.0
     command: ["up", "--lockdown"]
     restart: unless-stopped
     volumes:

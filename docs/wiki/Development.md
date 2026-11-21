@@ -29,7 +29,7 @@ test/e2e/run.sh && SKIP_BUILD=1 PROFILE=v3 test/e2e/run.sh
 
 The unit tests need nothing but Go. The end-to-end test needs Docker with `/dev/net/tun`
 (Docker Desktop and every Linux host have it): it builds the image, issues a network with
-the image's own CLI, starts a hub, two servers, four people and an outsider and checks 27 properties.
+the image's own CLI, starts a hub, two servers, four people and an outsider and checks 29 properties.
 `KEEP=1` leaves the bench running.
 
 A behaviour change carries a test that fails without it.

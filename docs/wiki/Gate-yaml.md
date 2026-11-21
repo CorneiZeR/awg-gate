@@ -63,14 +63,15 @@ configurations: decide them before issuing the first one.
 |---|---|---|
 | `reach` | no | server names, or `["*"]` for every server, present and future; empty reaches nothing |
 | `expires` | no | `YYYY-MM-DD`: the last day of access, UTC, inclusive |
-| `devices` | yes, at least one | map of device name → `{address, public_key}`; addresses in `people_subnet` |
+| `disabled` | no | `true` keeps the person in the file - keys and addresses reserved - but off the hub; removing it lets the same configurations connect again |
+| `devices` | yes, at least one | map of device name → `{address, public_key}`, and `disabled: true` for one device alone; addresses in `people_subnet` |
 
 ## Rules the hub enforces
 
 - Names of servers, people and devices: 1-32 characters, lowercase letters, digits and
   inner `-`.
 - Every address is a host address (not the subnet's first or last) in the right subnet,
-  and used once - the hub's own included.
+  and used once - the hub's own and a disabled device's included.
 - Every public key is a valid 32-byte key and used once.
 - `reach` names existing servers; `"*"` stands alone.
 - Subnets are IPv4, `/30` or larger, inside `network`, without host bits, not overlapping.
@@ -80,6 +81,6 @@ the CI of the repository that holds the file.
 
 ## Editing
 
-`awg-gate issue ... --gate gate.yaml` and `awg-gate revoke ... --gate gate.yaml` edit the
+`awg-gate issue`, `revoke`, `disable` and `enable` with `--gate gate.yaml` edit the
 file in place: comments, order and formatting of the rest survive, and the result is
 validated before it is written. Hand edits are just as fine.

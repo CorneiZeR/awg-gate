@@ -95,6 +95,35 @@ func RemovePerson(raw []byte, person, device string) ([]byte, error) {
 	})
 }
 
+// SetDisabled disables or re-enables a person, or only one of their devices
+// when device is given. Enabling removes the key rather than writing false, so
+// a file that never disabled anybody reads the same after a round trip.
+func SetDisabled(raw []byte, person, device string, disabled bool) ([]byte, error) {
+	return edit(raw, func(root *yaml.Node) error {
+		target := lookup(lookup(root, "people"), person)
+		if target == nil {
+			return fmt.Errorf("no person %q", person)
+		}
+		if device != "" {
+			if target = lookup(lookup(target, "devices"), device); target == nil {
+				return fmt.Errorf("person %q has no device %q", person, device)
+			}
+		}
+		if !disabled {
+			removeKey(target, "disabled")
+			return nil
+		}
+		if v := lookup(target, "disabled"); v != nil {
+			v.Kind, v.Tag, v.Value, v.Style = yaml.ScalarNode, "!!bool", "true", 0
+			return nil
+		}
+		target.Content = append(target.Content,
+			&yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: "disabled"},
+			&yaml.Node{Kind: yaml.ScalarNode, Tag: "!!bool", Value: "true"})
+		return nil
+	})
+}
+
 func edit(raw []byte, change func(root *yaml.Node) error) ([]byte, error) {
 	var doc yaml.Node
 	if len(bytes.TrimSpace(raw)) > 0 {

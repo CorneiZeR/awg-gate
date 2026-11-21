@@ -144,8 +144,15 @@ cli revoke person bob --gate config/gate.yaml >/dev/null
 "${compose[@]}" kill -s HUP hub >/dev/null
 eventually 10 "revoked bob loses server b at once (SIGHUP)" sh -c "! ${compose[*]} exec -T bob wget -qO- -T 2 http://10.247.0.11/"
 
+cli disable person alice --gate config/gate.yaml >/dev/null
+"${compose[@]}" kill -s HUP hub >/dev/null
+eventually 10 "disabled alice loses server a (SIGHUP)" sh -c "! ${compose[*]} exec -T alice wget -qO- -T 2 http://10.247.0.10/"
+cli enable person alice --gate config/gate.yaml >/dev/null
+"${compose[@]}" kill -s HUP hub >/dev/null
+eventually 20 "alice, enabled again, reaches server a with the same configuration" says alice http://10.247.0.10/ server-a
+
 sed -i.bak "s/expires: \"\{0,1\}$yesterday\"\{0,1\}/expires: \"2099-12-31\"/" "$WORK/config/gate.yaml"
-eventually 20 "carol, given a new end date, connects on the next re-read" says carol http://10.247.0.10/ server-a
+eventually 40 "carol, given a new end date, connects on the next re-read (every 30 s)" says carol http://10.247.0.10/ server-a
 
 step "result"
 if ((failures > 0)); then

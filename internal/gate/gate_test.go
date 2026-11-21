@@ -213,3 +213,71 @@ func TestEditEmptyFile(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestPlanLeavesDisabledOut(t *testing.T) {
+	raw := strings.Replace(sampleYAML(t), "  bob:\n", "  bob:\n    disabled: true\n", 1)
+	raw = strings.Replace(raw, "phone: {address: 10.247.1.11,", "phone: {disabled: true, address: 10.247.1.11,", 1)
+	c, err := Parse([]byte(raw))
+	if err != nil {
+		t.Fatal(err)
+	}
+	p := c.Plan(time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC))
+	if strings.Join(p.Disabled, " ") != "alice/phone bob/laptop" {
+		t.Errorf("disabled = %v", p.Disabled)
+	}
+	for _, peer := range p.Peers {
+		if peer.Name == "alice/phone" || peer.Name == "bob/laptop" {
+			t.Errorf("a disabled device is a peer: %s", peer.Name)
+		}
+	}
+	for _, r := range p.Rules {
+		if r.FromName != "alice/laptop" {
+			t.Errorf("a disabled device has a rule: %+v", r)
+		}
+	}
+	// A disabled device keeps its address: nobody else is given it.
+	if a, err := c.NextFree(c.PeoplePrefix()); err != nil || a == netip.MustParseAddr("10.247.1.11") {
+		t.Errorf("NextFree = %s, %v: the disabled phone's address was handed out", a, err)
+	}
+}
+
+func TestSetDisabled(t *testing.T) {
+	raw := []byte(sampleYAML(t))
+	out, err := SetDisabled(raw, "bob", "", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err = SetDisabled(out, "alice", "phone", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, err := Parse(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !c.People["bob"].Disabled || !c.People["alice"].Devices["phone"].Disabled || c.People["alice"].Disabled {
+		t.Fatalf("disabled flags wrong:\n%s", out)
+	}
+	if !strings.Contains(string(out), "# the team's access network") {
+		t.Error("the comment was lost")
+	}
+	// Disabling twice changes nothing; enabling removes the key altogether.
+	again, err := SetDisabled(out, "bob", "", true)
+	if err != nil || string(again) != string(out) {
+		t.Errorf("disabling twice changed the file (%v):\n%s", err, again)
+	}
+	for _, step := range []struct{ person, device string }{{"bob", ""}, {"alice", "phone"}} {
+		if out, err = SetDisabled(out, step.person, step.device, false); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if strings.Contains(string(out), "disabled") {
+		t.Errorf("enabled again, the file still says disabled:\n%s", out)
+	}
+	if _, err := SetDisabled(raw, "nobody", "", true); err == nil {
+		t.Error("an unknown person was accepted")
+	}
+	if _, err := SetDisabled(raw, "alice", "tablet", true); err == nil {
+		t.Error("an unknown device was accepted")
+	}
+}

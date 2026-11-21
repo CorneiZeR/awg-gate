@@ -134,7 +134,7 @@ func RunHub(ctx context.Context, o HubOptions) error {
 			}
 		}
 		log.Info("applied", "servers", servers, "devices", devices, "rules", len(plan.Rules),
-			"expired", strings.Join(plan.Expired, ","))
+			"expired", strings.Join(plan.Expired, ","), "disabled", strings.Join(plan.Disabled, ","))
 		return nil
 	}
 	if err := apply(cfg); err != nil {

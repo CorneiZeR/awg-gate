@@ -41,8 +41,8 @@ when they are missing (what the hub's first start would do).
 ## issue
 
 ```shell
-awg-gate issue person NAME DEVICE --hub-info hub.json [--gate gate.yaml] [--reach a,b|*] [--expires YYYY-MM-DD] [--address IP] [--out DIR] [--qr]
-awg-gate issue server NAME        --hub-info hub.json [--gate gate.yaml] [--ports 443,80]   [--address IP] [--out DIR]
+awg-gate issue person NAME DEVICE --hub-info hub.json [--gate gate.yaml] [--reach a,b|*] [--expires YYYY-MM-DD] [--address IP] [--out DIR] [--qr | --json]
+awg-gate issue server NAME        --hub-info hub.json [--gate gate.yaml] [--ports 443,80]   [--address IP] [--out DIR] [--json]
 ```
 
 Generates a key pair locally and writes the configuration, mode `600`, into `--out`
@@ -52,6 +52,23 @@ server. Never overwrites a file.
 With `--gate`, adds the entry to that `gate.yaml` (picking the next free address unless
 `--address` is given) and validates it. Without it, `--address` is required and the YAML
 to add is printed. `--reach` and `--expires` apply to a new person only.
+
+`--json` prints, instead of the text, one JSON object for a script that keeps `gate.yaml`'s
+source elsewhere:
+
+```json
+{
+  "kind": "person",
+  "name": "alice",
+  "device": "phone",
+  "address": "10.247.1.11",
+  "public_key": "...",
+  "files": ["./alice-phone.conf", "./alice-phone.png"]
+}
+```
+
+`ports` is added for a server given `--ports`, and `gate` names the file when `--gate`
+filed the entry too. `files` hold the private key: deliver them and delete them.
 
 `AWG_GATE_HUB_INFO` and `AWG_GATE_GATE` set `--hub-info` and `--gate`.
 
@@ -65,6 +82,17 @@ awg-gate revoke server NAME          [--gate gate.yaml]
 Removes the entry from `gate.yaml`, keeping the rest of the file as it was. A person left
 without devices is removed; a removed server leaves every `reach` list.
 
+## disable, enable
+
+```shell
+awg-gate disable person NAME [DEVICE] [--gate gate.yaml]
+awg-gate enable  person NAME [DEVICE] [--gate gate.yaml]
+```
+
+`disable` sets `disabled: true` on the person, or on one device: the entry, its keys and
+addresses stay, the hub leaves it out. `enable` removes the key again, and the
+configurations already issued connect as before. See [People](People.md#pause-someone).
+
 ## check
 
 ```shell
@@ -72,7 +100,7 @@ awg-gate check [--config gate.yaml]
 ```
 
 Validates the file and prints every device → server rule with its ports, and the devices
-left out because they expired. Exit status 1 on an invalid file: use it in CI.
+left out because they expired or are disabled. Exit status 1 on an invalid file: use it in CI.
 
 ## status
 

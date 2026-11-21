@@ -45,6 +45,8 @@ Operator commands:
   hub-info   print what clients need from a hub (no private key); --init sets a new hub up
   issue      issue a configuration: issue person NAME DEVICE | issue server NAME
   revoke     remove from gate.yaml:  revoke person NAME [DEVICE] | revoke server NAME
+  disable    keep a person (or one device) in gate.yaml but off the hub: disable person NAME [DEVICE]
+  enable     let a disabled person (or device) connect again, with the same configuration
   check      validate gate.yaml and print what it grants
   status     show peers, handshakes and traffic of the running hub or tunnel
   health     exit 0 when the running daemon is healthy (the container health check)
@@ -72,6 +74,8 @@ func main() {
 		err = cmdIssue(args, os.Stdout)
 	case "revoke":
 		err = cmdRevoke(args, os.Stdout)
+	case "disable", "enable":
+		err = cmdSetDisabled(cmd == "disable", args, os.Stdout)
 	case "check":
 		err = cmdCheck(args, os.Stdout)
 	case "status":
@@ -240,8 +244,12 @@ func cmdIssue(args []string, w io.Writer) error {
 	expires := fs.String("expires", "", "person: last day of access of a NEW person, YYYY-MM-DD")
 	ports := fs.String("ports", "", "server: the only TCP/UDP ports people may reach on it")
 	showQR := fs.Bool("qr", false, "person: also draw the QR code in the terminal")
+	asJSON := fs.Bool("json", false, "print the issued entry as one JSON object instead of text, for a script to file it")
 	if err := fs.Parse(args[1+nArgs:]); err != nil {
 		return err
+	}
+	if *asJSON && *showQR {
+		return errors.New("--json and --qr: choose one")
 	}
 	info, err := state.ReadInfo(*infoPath)
 	if err != nil {
@@ -292,11 +300,11 @@ func cmdIssue(args []string, w io.Writer) error {
 		label, base, snippet string
 		file                 string
 		updated              []byte
+		portList             []int
 	)
 	if kind == "server" {
 		label, base = "server "+names[0], names[0]
-		portList, err := parsePorts(*ports)
-		if err != nil {
+		if portList, err = parsePorts(*ports); err != nil {
 			return fmt.Errorf("ports: %w", err)
 		}
 		srv := gate.Server{Address: addr.String(), PublicKey: pub, Ports: portList}
@@ -359,6 +367,21 @@ func cmdIssue(args []string, w io.Writer) error {
 		if err := writeGate(*gatePath, updated); err != nil {
 			return err
 		}
+	}
+	if *asJSON {
+		entry := issuedEntry{Kind: kind, Name: names[0], Address: addr.String(), PublicKey: pub, Files: written}
+		if kind == "person" {
+			entry.Device = names[1]
+		}
+		entry.Ports = portList
+		if updated != nil {
+			entry.Gate = *gatePath
+		}
+		enc := json.NewEncoder(w)
+		enc.SetIndent("", "  ")
+		return enc.Encode(entry)
+	}
+	if updated != nil {
 		out.f("added %s (%s) to %s\n", label, addr, *gatePath)
 	} else {
 		out.f("add to gate.yaml:\n\n%s\n", snippet)
@@ -372,6 +395,20 @@ func cmdIssue(args []string, w io.Writer) error {
 		out.f("\n%s", term)
 	}
 	return out.err
+}
+
+// issuedEntry is what `issue --json` prints: everything a script needs to file
+// the new key wherever it keeps gate.yaml's source, and the files holding the
+// private key it must deliver and delete.
+type issuedEntry struct {
+	Kind      string   `json:"kind"`
+	Name      string   `json:"name"`
+	Device    string   `json:"device,omitempty"`
+	Address   string   `json:"address"`
+	PublicKey string   `json:"public_key"`
+	Ports     []int    `json:"ports,omitempty"`
+	Files     []string `json:"files"`
+	Gate      string   `json:"gate,omitempty"`
 }
 
 func cmdRevoke(args []string, w io.Writer) error {
@@ -414,6 +451,43 @@ func cmdRevoke(args []string, w io.Writer) error {
 	return msg.err
 }
 
+func cmdSetDisabled(disabled bool, args []string, w io.Writer) error {
+	verb := "enable"
+	if disabled {
+		verb = "disable"
+	}
+	if len(args) < 2 || args[0] != "person" {
+		return fmt.Errorf("%s person NAME [DEVICE] [--gate FILE]", verb)
+	}
+	name, rest, device := args[1], args[2:], ""
+	if len(rest) > 0 && !strings.HasPrefix(rest[0], "-") {
+		device, rest = rest[0], rest[1:]
+	}
+	fs := newFlags(verb + " person")
+	gatePath := fs.String("gate", env("AWG_GATE_GATE", "gate.yaml"), "gate.yaml to change (AWG_GATE_GATE)")
+	if err := fs.Parse(rest); err != nil {
+		return err
+	}
+	raw, err := fsutil.ReadFile(*gatePath)
+	if err != nil {
+		return err
+	}
+	out, err := gate.SetDisabled(raw, name, device, disabled)
+	if err != nil {
+		return err
+	}
+	if err := writeGate(*gatePath, out); err != nil {
+		return err
+	}
+	what := name
+	if device != "" {
+		what += "/" + device
+	}
+	msg := &printer{w: w}
+	msg.f("%sd %s in %s; the hub applies it on its next re-read (or at once on SIGHUP)\n", verb, what, *gatePath)
+	return msg.err
+}
+
 func cmdCheck(args []string, w io.Writer) error {
 	fs := newFlags("check")
 	configPath := fs.String("config", env("AWG_GATE_CONFIG", "gate.yaml"), "gate.yaml (AWG_GATE_CONFIG)")
@@ -443,6 +517,9 @@ func cmdCheck(args []string, w io.Writer) error {
 	}
 	if len(plan.Expired) > 0 {
 		out.f("expired, not admitted: %s\n", strings.Join(plan.Expired, ", "))
+	}
+	if len(plan.Disabled) > 0 {
+		out.f("disabled, not admitted: %s\n", strings.Join(plan.Disabled, ", "))
 	}
 	return out.err
 }

@@ -5,7 +5,16 @@ All notable changes to this project are documented here. The project follows
 environment variable, or changing a default that issued configurations carry, is a major
 version.
 
-## Unreleased
+## 0.2.0 — 2026-11-22
+
+- **Pause somebody without reissuing anything.** `disabled: true` on a person, or on one
+  device, keeps the entry - keys and addresses reserved - but off the hub;
+  `awg-gate disable` and `awg-gate enable` set and clear it, and the configurations already
+  issued connect again once it is cleared. `check` lists disabled devices, and the hub's
+  `applied` log line carries a `disabled` field.
+- **`issue --json`** prints the issued entry (name, device, address, public key, the
+  files holding the private key) as one JSON object, for a script that keeps `gate.yaml`'s
+  source somewhere else - an inventory, Terraform.
 
 - **Dependency fixes land without waiting.** Dependabot checks daily, and its patch and
   minor updates merge by themselves once every check (tests, end-to-end, govulncheck,

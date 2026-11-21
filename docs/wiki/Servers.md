@@ -78,7 +78,7 @@ address on its own port:
 ```yaml
 services:
   awg-gate:
-    image: ghcr.io/corneizer/awg-gate:0.1.0
+    image: ghcr.io/corneizer/awg-gate:0.2.0
     command: ["up", "--lockdown"]
     volumes: ["./config:/config:ro"]
     devices: ["/dev/net/tun:/dev/net/tun"]

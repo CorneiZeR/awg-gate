@@ -6,8 +6,8 @@
 
 | Tag | |
 |---|---|
-| `0.1.0` | a release; pin this |
-| `0.1` | the latest release of a minor series |
+| `0.2.0` | a release; pin this |
+| `0.2` | the latest release of a minor series |
 | `latest` | the latest release |
 
 Inside: `awg-gate` (entrypoint), `amneziawg-go` (the userspace AmneziaWG), `awg` (its
