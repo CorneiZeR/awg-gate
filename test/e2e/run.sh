@@ -86,7 +86,8 @@ never() { # never DESCRIPTION COMMAND... - the command must fail
 	shift
 	if "$@" >/dev/null 2>&1; then fail "$what"; else pass "$what"; fi
 }
-says() { get "$1" "$2" | grep -q "$3"; }
+# The answer is captured first: with pipefail, grep -q leaving early would fail the writer.
+says() { local answer; answer="$(get "$1" "$2")" && grep -q "$3" <<<"$answer"; }
 
 step "tunnels come up"
 for svc in hub spoke-a spoke-b alice bob; do
@@ -124,7 +125,13 @@ never "server b does not answer the internet at all (lockdown)" get outsider htt
 never "the hub answers nothing on the internet but the tunnel port" get outsider http://198.18.0.2/
 
 step "status"
-if on hub awg-gate status | grep -q 'alice/laptop'; then pass "hub status names alice/laptop"; else fail "hub status names alice/laptop"; fi
+status="$(on hub awg-gate status 2>&1 || true)"
+if grep -q 'alice/laptop' <<<"$status"; then
+	pass "hub status names alice/laptop"
+else
+	fail "hub status names alice/laptop"
+	printf '%s\n' "$status"
+fi
 
 step "changes to gate.yaml apply live"
 cp "$WORK/config/gate.yaml" "$WORK/gate.good"

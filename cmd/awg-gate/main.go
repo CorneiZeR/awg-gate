@@ -473,7 +473,10 @@ func cmdStatus(args []string, w io.Writer) error {
 	}
 	names := map[string][3]string{}
 	if h.Role == "hub" {
-		if c, err := gate.Load(h.ConfigPath); err == nil {
+		c, err := gate.Load(h.ConfigPath)
+		if err != nil {
+			out.f("peers are shown by key: %v\n", err)
+		} else {
 			for _, p := range c.Plan(time.Now()).Peers {
 				names[p.PublicKey.String()] = [3]string{p.Name, p.Address.String(), p.Expires}
 			}
