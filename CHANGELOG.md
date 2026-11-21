@@ -10,6 +10,8 @@ version.
 - **Dependency fixes land without waiting.** Dependabot checks daily, and its patch and
   minor updates merge by themselves once every check (tests, end-to-end, govulncheck,
   Trivy) is green; the published image is rescanned daily instead of weekly.
+- The repository carries a code of conduct, an OpenSSF Scorecard (badge in the README),
+  Discussions for questions, and a feature-request template.
 
 ## 0.1.0 — 2026-11-21
 

@@ -1,7 +1,11 @@
 # awg-gate
 
 [![CI](https://github.com/CorneiZeR/awg-gate/actions/workflows/ci.yml/badge.svg)](https://github.com/CorneiZeR/awg-gate/actions/workflows/ci.yml)
-[![Docs](https://img.shields.io/badge/docs-wiki-blue)](https://corneizer.github.io/awg-gate/)
+[![CodeQL](https://github.com/CorneiZeR/awg-gate/actions/workflows/codeql.yml/badge.svg)](https://github.com/CorneiZeR/awg-gate/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/CorneiZeR/awg-gate/badge)](https://scorecard.dev/viewer/?uri=github.com/CorneiZeR/awg-gate)
+[![Release](https://img.shields.io/github/v/release/CorneiZeR/awg-gate)](https://github.com/CorneiZeR/awg-gate/releases/latest)
+[![Image](https://img.shields.io/badge/image-ghcr.io%2Fcorneizer%2Fawg--gate-blue?logo=docker)](https://github.com/CorneiZeR/awg-gate/pkgs/container/awg-gate)
+[![Docs](https://img.shields.io/badge/docs-corneizer.github.io%2Fawg--gate-blue)](https://corneizer.github.io/awg-gate/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 An [AmneziaWG](https://docs.amnezia.org/documentation/amnezia-wg/) access network for
@@ -80,6 +84,13 @@ and four people in Docker, and proves 27 properties for each obfuscation profile
 person reaches exactly their servers and ports, nobody reaches anyone else, an expired
 person and a plain-WireGuard client get nothing, the internet gets a 403 or silence, and
 edits to `gate.yaml` apply live - while a broken one is refused and the last good one kept.
+
+## Questions and contributions
+
+Questions and ideas go to [Discussions](https://github.com/CorneiZeR/awg-gate/discussions),
+bugs to [issues](https://github.com/CorneiZeR/awg-gate/issues), vulnerabilities privately
+through [SECURITY.md](SECURITY.md). Contributions: [CONTRIBUTING.md](CONTRIBUTING.md) and
+the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## License
 
