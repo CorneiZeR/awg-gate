@@ -37,6 +37,8 @@ type Plan struct {
 	Rules []Rule
 	// Expired lists the devices left out because their person's access ended.
 	Expired []string
+	// Disabled lists the devices left out because they or their person are disabled.
+	Disabled []string
 }
 
 // Active reports whether access ending on expires (a YYYY-MM-DD day, inclusive,
@@ -72,6 +74,10 @@ func (c *Config) Plan(now time.Time) Plan {
 		for _, dn := range sortedKeys(pp.Devices) {
 			d := pp.Devices[dn]
 			name := person + "/" + dn
+			if pp.Disabled || d.Disabled {
+				p.Disabled = append(p.Disabled, name)
+				continue
+			}
 			if !Active(pp.Expires, now) {
 				p.Expired = append(p.Expired, name)
 				continue

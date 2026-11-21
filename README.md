@@ -53,7 +53,7 @@ docker compose up -d
 On your machine, with `gate.yaml` and `hub.json` next to you:
 
 ```shell
-alias awg-gate='docker run --rm -it -v "$PWD:/work" -w /work --user "$(id -u):$(id -g)" ghcr.io/corneizer/awg-gate:0.1.0'
+alias awg-gate='docker run --rm -it -v "$PWD:/work" -w /work --user "$(id -u):$(id -g)" ghcr.io/corneizer/awg-gate:0.2.0'
 
 awg-gate issue server shop-dev --hub-info hub.json --gate gate.yaml --ports 443,80
 awg-gate issue person alice laptop --hub-info hub.json --gate gate.yaml --reach shop-dev
@@ -80,7 +80,7 @@ every platform, obfuscation profiles, operations, security model, troubleshootin
 `go test ./...` covers configuration, planning, rule rendering and key handling.
 [`test/e2e/run.sh`](test/e2e/run.sh) issues a whole network with the image's own CLI,
 starts a hub, two servers (Traefik with an allowlist, nginx behind a locked-down sidecar)
-and four people in Docker, and proves 27 properties for each obfuscation profile: each
+and four people in Docker, and proves 29 properties for each obfuscation profile: each
 person reaches exactly their servers and ports, nobody reaches anyone else, an expired
 person and a plain-WireGuard client get nothing, the internet gets a 403 or silence, and
 edits to `gate.yaml` apply live - while a broken one is refused and the last good one kept.

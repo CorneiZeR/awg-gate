@@ -83,14 +83,19 @@ type Person struct {
 	// empty reaches nothing (the devices connect but every server is closed).
 	Reach []string `yaml:"reach"`
 	// Expires is the last day (UTC) access lasts; empty for no end.
-	Expires string            `yaml:"expires,omitempty"`
-	Devices map[string]Device `yaml:"devices"`
+	Expires string `yaml:"expires,omitempty"`
+	// Disabled keeps the person in the file, keys and addresses reserved, but
+	// off the hub; clearing it lets the same configurations connect again.
+	Disabled bool              `yaml:"disabled,omitempty"`
+	Devices  map[string]Device `yaml:"devices"`
 }
 
 // Device is one key of a person: a laptop, a phone.
 type Device struct {
 	Address   string `yaml:"address"`
 	PublicKey string `yaml:"public_key"`
+	// Disabled takes this one device off the hub, as Person.Disabled does all of them.
+	Disabled bool `yaml:"disabled,omitempty"`
 }
 
 // Load reads and validates a gate.yaml.

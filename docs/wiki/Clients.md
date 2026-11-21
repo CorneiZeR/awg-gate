@@ -51,7 +51,7 @@ With Docker, the awg-gate image runs the configuration in the host's network nam
 docker run -d --name awg-gate --restart unless-stopped --network host \
   --cap-drop ALL --cap-add NET_ADMIN --device /dev/net/tun --read-only --tmpfs /run \
   -v "$HOME/.config/awg-gate:/config:ro" \
-  ghcr.io/corneizer/awg-gate:0.1.0 up --config /config/alice-laptop.conf
+  ghcr.io/corneizer/awg-gate:0.2.0 up --config /config/alice-laptop.conf
 ```
 
 Without Docker, install [amneziawg-tools](https://github.com/amnezia-vpn/amneziawg-tools)

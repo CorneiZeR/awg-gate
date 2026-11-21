@@ -7,7 +7,7 @@ the [documentation](https://corneizer.github.io/awg-gate/).
 
 An AmneziaWG access network for reaching private servers: one hub, servers as spokes,
 people as peers, access per person decided by one file, `gate.yaml`. One Go binary is
-both the daemons (`hub`, `up`) and the operator's CLI (`hub-info`, `issue`, `revoke`,
+both the daemons (`hub`, `up`) and the operator's CLI (`hub-info`, `issue`, `revoke`, `disable`, `enable`,
 `check`, `status`, `health`); one container image carries it with `amneziawg-go`, `awg`,
 `ip` and `nft`.
 

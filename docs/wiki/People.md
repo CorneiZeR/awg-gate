@@ -6,7 +6,7 @@ Everything below runs the image on your machine, in the directory holding `gate.
 `hub.json`:
 
 ```shell
-alias awg-gate='docker run --rm -it -v "$PWD:/work" -w /work --user "$(id -u):$(id -g)" ghcr.io/corneizer/awg-gate:0.1.0'
+alias awg-gate='docker run --rm -it -v "$PWD:/work" -w /work --user "$(id -u):$(id -g)" ghcr.io/corneizer/awg-gate:0.2.0'
 ```
 
 Key pairs are generated here, on your machine. `gate.yaml` receives the public key; the
@@ -66,6 +66,21 @@ devices when that day ends (re-checked every 30 seconds, no timer to set up). Th
 stays in `gate.yaml`, so extending access is changing the date. `awg-gate check` lists
 expired devices.
 
+## Pause someone
+
+Somebody who works with you now and then does not need a new configuration every time:
+
+```shell
+awg-gate disable person alice --gate gate.yaml        # every device
+awg-gate disable person alice phone --gate gate.yaml  # one device
+awg-gate enable person alice --gate gate.yaml         # back, with the same configuration
+```
+
+`disabled: true` keeps the entry, its keys and its addresses, but the hub leaves it out -
+established connections stop as with `revoke`. Clearing it lets the configuration they
+already have connect again. A disabled device's address stays reserved, so nobody else is
+ever given it. `awg-gate check` lists disabled devices.
+
 ## Take access away
 
 ```shell
@@ -90,5 +105,8 @@ obfuscation parameter set ([Obfuscation](Obfuscation.md#changing-the-parameters)
 
 If people already live in a list - an Ansible inventory, Terraform, an HR export - generate
 `gate.yaml` from it, or run `awg-gate issue`/`revoke` from the same playbook that creates
-mailboxes and accounts. `gate.yaml` stays the one thing the hub reads, and `awg-gate check`
+mailboxes and accounts. `issue --json` (without `--gate`) prints the new device's name,
+address and public key as one JSON object, for a script to file in that list; whoever is
+leaving or pausing becomes `disabled: true` in the generated file, so their configurations
+work again the day they are back. `gate.yaml` stays the one thing the hub reads, and `awg-gate check`
 in CI keeps a broken one from reaching it.

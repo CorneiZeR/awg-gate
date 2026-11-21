@@ -36,7 +36,7 @@ and any container monitor read it directly. A hub with a rejected `gate.yaml` st
 Plain text on stderr, one line per event:
 
 ```text
-level=INFO msg=applied servers=2 devices=5 rules=7 expired=carol/laptop
+level=INFO msg=applied servers=2 devices=5 rules=7 expired=carol/laptop disabled=""
 level=ERROR msg="gate.yaml rejected, still serving the last good one" err="person bob: reach names \"shop\", which is not a server"
 level=WARN msg="tunnel down" reason="last handshake 3m10s ago"
 ```
@@ -46,7 +46,7 @@ a configuration file or traffic.
 
 ## Upgrades
 
-Images are tagged by version (`0.1.0`), minor series (`0.1`) and `latest`; pin a version
+Images are tagged by version (`0.2.0`), minor series (`0.2`) and `latest`; pin a version
 and let Dependabot or Renovate raise it. Then:
 
 ```shell
@@ -60,7 +60,7 @@ that needs action.
 Verify an image before running it:
 
 ```shell
-cosign verify ghcr.io/corneizer/awg-gate:0.1.0 \
+cosign verify ghcr.io/corneizer/awg-gate:0.2.0 \
   --certificate-identity-regexp '^https://github.com/CorneiZeR/awg-gate/\.github/workflows/release\.yml@refs/tags/v' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
