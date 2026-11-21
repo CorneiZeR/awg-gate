@@ -1,0 +1,8 @@
+*
+!cmd/
+!internal/
+!go.mod
+!go.sum
+!LICENSE
+!THIRD-PARTY-NOTICES.md
+**/*_test.go

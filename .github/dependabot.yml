@@ -1,0 +1,42 @@
+version: 2
+updates:
+  # awg-gate's modules and amneziawg-go with the golang.org/x modules it links.
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      golang-x:
+        patterns: ['golang.org/x/*']
+
+  # The Dockerfile's base images, pinned by digest.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+
+  # The images in the compose files users copy, and in the test bench.
+  - package-ecosystem: docker-compose
+    directories:
+      - /deploy/hub
+      - /deploy/spoke
+      - /deploy/sidecar
+      - /test/e2e
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']
+
+  - package-ecosystem: pip
+    directory: /docs
+    schedule:
+      interval: weekly
+    groups:
+      docs:
+        patterns: ['*']

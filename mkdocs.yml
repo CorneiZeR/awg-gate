@@ -1,0 +1,102 @@
+site_name: awg-gate
+site_description: An AmneziaWG access network for reaching private servers - one hub, servers as spokes, access per person
+site_author: Oleksii Kolosiuk
+site_url: https://corneizer.github.io/awg-gate/
+copyright: MIT
+
+repo_url: https://github.com/CorneiZeR/awg-gate
+repo_name: CorneiZeR/awg-gate
+edit_uri: edit/master/docs/wiki/
+
+docs_dir: docs/wiki
+site_dir: site
+
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+  links:
+    not_found: warn
+    absolute_links: warn
+    unrecognized_links: warn
+    anchors: warn
+
+theme:
+  name: material
+  language: en
+  font:
+    text: IBM Plex Sans
+    code: IBM Plex Mono
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: '(prefers-color-scheme)'
+      toggle:
+        icon: material/brightness-auto
+        name: Follow the system
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light
+  features:
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+
+nav:
+  - Home: index.md
+  - Concepts.md
+  - Quick start: Quick-start.md
+  - Running it:
+      - Hub.md
+      - Servers.md
+      - Traefik, nginx, Caddy: Services.md
+      - Cloudflare.md
+      - People and devices: People.md
+      - Clients.md
+      - Obfuscation.md
+      - Operations.md
+      - Troubleshooting.md
+  - Reference:
+      - gate.yaml: Gate-yaml.md
+      - CLI.md
+      - Docker.md
+  - Security model: Security-model.md
+  - Development.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/CorneiZeR/awg-gate
+    - icon: fontawesome/brands/docker
+      link: https://github.com/CorneiZeR/awg-gate/pkgs/container/awg-gate
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search

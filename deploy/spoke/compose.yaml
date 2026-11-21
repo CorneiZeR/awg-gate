@@ -1,0 +1,30 @@
+# A server joining the access network: the tunnel end runs in the host's network
+# namespace, so the host gets the address from awg.conf (e.g. 10.247.0.10) and
+# every service on it - a host nginx, a Traefik container - can be reached on it.
+# See docs/wiki/Servers.md.
+#
+#   mkdir -p config && mv shop-dev.conf config/awg.conf && chmod 600 config/awg.conf
+#   docker compose up -d
+
+services:
+  awg-gate:
+    image: ghcr.io/corneizer/awg-gate:0.1.0
+    command: ["up"]
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      # The only ports people reach over the tunnel; drop it to allow all.
+      AWG_GATE_ALLOW_PORTS: "80,443"
+      # Never AWG_GATE_LOCKDOWN here: in the host's namespace it would cut off SSH.
+    volumes:
+      - ./config:/config:ro
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_drop: [ALL]
+    cap_add: [NET_ADMIN]
+    read_only: true
+    tmpfs: ["/run"]
+    security_opt: ["no-new-privileges:true"]
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}

@@ -1,0 +1,36 @@
+name: Scan published image
+
+# A release is clean on the day it ships; new CVEs are found in old code every week.
+# This rescans what users actually pull and fails - which notifies the maintainer -
+# when a fix exists that a rebuild would pick up.
+
+on:
+  schedule:
+    - cron: '17 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Is there a release yet
+        id: image
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/awg-gate:latest"
+          if docker manifest inspect "$image" >/dev/null 2>&1; then
+            echo "ref=$image" >> "$GITHUB_OUTPUT"
+          else
+            echo "No published image yet."
+          fi
+      - if: steps.image.outputs.ref != ''
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ steps.image.outputs.ref }}
+          version: v0.76.2
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'

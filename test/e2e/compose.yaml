@@ -1,0 +1,103 @@
+# The end-to-end bench: a hub, two servers and four people on a pretend internet.
+# test/e2e/run.sh writes the configurations into $WORK and drives it; it is not
+# meant to be started by hand.
+#
+#   server a: a host-style spoke. Traefik answers on every interface and lets in
+#             only the access network (ipAllowList); the spoke allows ports 80 and
+#             8080 over the tunnel; the hub allows people ports 80 and 9090 on it.
+#   server b: a sidecar spoke in lockdown, nginx behind it with allow/deny.
+#   alice -> a, bob -> b, carol -> a but expired, dave -> a with plain WireGuard.
+
+name: awg-gate-e2e
+
+x-tunnel: &tunnel
+  image: ${IMAGE:?}
+  cap_drop: [ALL]
+  cap_add: [NET_ADMIN]
+  devices: ["/dev/net/tun:/dev/net/tun"]
+  read_only: true
+  tmpfs: ["/run"]
+  security_opt: ["no-new-privileges:true"]
+  environment:
+    AWG_GATE_LOG_LEVEL: debug
+  healthcheck:
+    test: ["CMD", "awg-gate", "health"]
+    interval: 2s
+    timeout: 5s
+    retries: 3
+    start_period: 30s
+
+services:
+  hub:
+    <<: *tunnel
+    command: ["hub", "--interval", "2s"]
+    sysctls:
+      net.ipv4.ip_forward: "1"
+    volumes:
+      - ${WORK:?}/config:/config:ro
+      - ${WORK:?}/data:/data
+    networks:
+      wan: {ipv4_address: 198.18.0.2}
+
+  spoke-a:
+    <<: *tunnel
+    command: ["up", "--allow-ports", "80,8080"]
+    volumes: ["${WORK:?}/a:/config:ro"]
+    networks:
+      wan: {ipv4_address: 198.18.0.10}
+  traefik-a:
+    image: traefik:v3.7.19@sha256:a6c0194dda77bcb804824580f36fa7edc56e315b1acfe933366c8b52844a78a4
+    network_mode: service:spoke-a
+    command:
+      - --entrypoints.web.address=:80
+      - --entrypoints.alt.address=:8080
+      - --entrypoints.extra.address=:9090
+      - --providers.file.filename=/etc/traefik/dynamic.yaml
+    volumes: ["./traefik-dynamic.yaml:/etc/traefik/dynamic.yaml:ro"]
+  whoami-a:
+    image: traefik/whoami:v1.12.0@sha256:c4717a8d1f0134a7444e24f881160e033991f23027c6c5a9a3f8fd22e70d1d44
+    network_mode: service:spoke-a
+    command: ["--port", "8081", "--name", "server-a"]
+
+  spoke-b:
+    <<: *tunnel
+    command: ["up", "--lockdown"]
+    volumes: ["${WORK:?}/b:/config:ro"]
+    networks:
+      wan: {ipv4_address: 198.18.0.11}
+  nginx-b:
+    image: nginx:1.30.7-alpine@sha256:caf4e1e032a20f9c3c5e28fc7f25ffd768ad8677b4975c54193075997b3a97e3
+    network_mode: service:spoke-b
+    volumes: ["./nginx-b.conf:/etc/nginx/conf.d/default.conf:ro"]
+
+  alice:
+    <<: *tunnel
+    command: ["up", "--config", "/clients/alice-laptop.conf"]
+    volumes: ["${WORK:?}/clients:/clients:ro"]
+    networks: [wan]
+  bob:
+    <<: *tunnel
+    command: ["up", "--config", "/clients/bob-laptop.conf"]
+    volumes: ["${WORK:?}/clients:/clients:ro"]
+    networks: [wan]
+  carol:
+    <<: *tunnel
+    command: ["up", "--config", "/clients/carol-laptop.conf"]
+    volumes: ["${WORK:?}/clients:/clients:ro"]
+    networks: [wan]
+  dave:
+    <<: *tunnel
+    command: ["up", "--config", "/clients/dave-plain.conf"]
+    volumes: ["${WORK:?}/clients:/clients:ro"]
+    networks: [wan]
+
+  outsider:
+    image: ${IMAGE:?}
+    entrypoint: ["sleep", "infinity"]
+    networks: [wan]
+
+networks:
+  wan:
+    ipam:
+      # static addresses below .128, dynamic ones above, so they never collide
+      config: [{subnet: 198.18.0.0/24, ip_range: 198.18.0.128/25}]

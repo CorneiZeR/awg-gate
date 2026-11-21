@@ -1,0 +1,17 @@
+# The recipe from the wiki's Traefik page: a router that admits only the access network.
+http:
+  middlewares:
+    vpn-only:
+      ipAllowList:
+        sourceRange: ["10.247.0.0/16"]
+  routers:
+    app:
+      rule: PathPrefix(`/`)
+      entryPoints: [web, alt, extra]
+      middlewares: [vpn-only]
+      service: app
+  services:
+    app:
+      loadBalancer:
+        servers:
+          - url: http://127.0.0.1:8081

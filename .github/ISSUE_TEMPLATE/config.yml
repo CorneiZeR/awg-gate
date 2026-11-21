@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://corneizer.github.io/awg-gate/
+    about: Concepts, setup, Cloudflare, clients, troubleshooting
+  - name: Report a vulnerability
+    url: https://github.com/CorneiZeR/awg-gate/security/advisories/new
+    about: Privately, please

@@ -1,0 +1,28 @@
+# A single service reachable only through the access network: the tunnel end is
+# a sidecar whose network namespace the service shares. With lockdown on, nothing
+# that does not come through the tunnel gets in - no published ports, no proxy.
+# See docs/wiki/Servers.md#sidecar.
+
+services:
+  awg-gate:
+    image: ghcr.io/corneizer/awg-gate:0.1.0
+    command: ["up", "--lockdown"]
+    restart: unless-stopped
+    volumes:
+      - ./config:/config:ro
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_drop: [ALL]
+    cap_add: [NET_ADMIN]
+    read_only: true
+    tmpfs: ["/run"]
+    security_opt: ["no-new-privileges:true"]
+
+  app:
+    # Any image: it listens as usual and is reached at the sidecar's tunnel address.
+    image: traefik/whoami:v1.12.0@sha256:c4717a8d1f0134a7444e24f881160e033991f23027c6c5a9a3f8fd22e70d1d44
+    network_mode: service:awg-gate
+    depends_on:
+      awg-gate:
+        condition: service_healthy
+    restart: unless-stopped

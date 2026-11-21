@@ -1,0 +1,37 @@
+# The hub, on a small VPS of its own. See docs/wiki/Hub.md.
+#
+#   mkdir -p config && cp gate.example.yaml config/gate.yaml   # then set endpoint
+#   docker compose run --rm hub hub-info --init > hub.json      # draws the hub's key, once
+#   docker compose up -d
+#
+# gate.yaml is read from the mounted DIRECTORY, not a mounted file: editors and
+# `awg-gate issue`/`revoke` replace the file, and a file bind mount would keep
+# showing the container the old one.
+
+services:
+  hub:
+    image: ghcr.io/corneizer/awg-gate:0.1.0
+    command: ["hub"]
+    restart: unless-stopped
+    ports:
+      - "443:443/udp"
+    volumes:
+      - ./config:/config:ro
+      - data:/data
+    sysctls:
+      net.ipv4.ip_forward: "1"
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_drop: [ALL]
+    cap_add: [NET_ADMIN]
+    read_only: true
+    tmpfs: ["/run"]
+    security_opt: ["no-new-privileges:true"]
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}
+
+volumes:
+  # The hub's private key and obfuscation parameters: back this up. Losing it
+  # means reissuing every configuration.
+  data:
