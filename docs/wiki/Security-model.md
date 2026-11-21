@@ -45,9 +45,11 @@
   ([verify](Operations.md#upgrades)).
 - **No known vulnerabilities at release.** CI fails on any fixable HIGH or CRITICAL finding
   (Trivy) in the image and on any reachable vulnerability (`govulncheck`) in either Go
-  binary; the published image is rescanned weekly. Dependabot keeps Go modules - including
-  AmneziaWG and the `golang.org/x` modules it links - base images and actions current; a
-  weekly job proposes new upstream AmneziaWG tools releases.
+  binary; the published image is rescanned daily. Dependabot checks Go modules - including
+  AmneziaWG and the `golang.org/x` modules it links - base images, compose images and
+  actions daily, and its patch and minor updates merge by themselves once every check is
+  green; a fix that changes the image ships as a patch release. A weekly job proposes new
+  upstream AmneziaWG tools releases.
 - The containers run with every capability dropped but `NET_ADMIN`, a read-only root
   filesystem and `no-new-privileges`.
 

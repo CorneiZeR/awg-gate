@@ -1,0 +1,27 @@
+name: Dependabot auto-merge
+
+# Dependency fixes - most of them CVE fixes in a base image or a golang.org/x module -
+# should not wait for someone to click merge. Patch and minor updates merge by themselves
+# once every required check (tests, e2e, govulncheck, Trivy) is green; a major update
+# stays open for a person to read.
+
+on: pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  auto-merge:
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - id: meta
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+      - if: steps.meta.outputs.update-type != 'version-update:semver-major'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ github.token }}

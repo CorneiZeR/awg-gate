@@ -4,7 +4,7 @@ updates:
   - package-ecosystem: gomod
     directory: /
     schedule:
-      interval: weekly
+      interval: daily
     groups:
       golang-x:
         patterns: ['golang.org/x/*']
@@ -13,7 +13,7 @@ updates:
   - package-ecosystem: docker
     directory: /
     schedule:
-      interval: weekly
+      interval: daily
 
   # The images in the compose files users copy, and in the test bench.
   - package-ecosystem: docker-compose
@@ -23,12 +23,12 @@ updates:
       - /deploy/sidecar
       - /test/e2e
     schedule:
-      interval: weekly
+      interval: daily
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: daily
     groups:
       actions:
         patterns: ['*']
@@ -36,7 +36,7 @@ updates:
   - package-ecosystem: pip
     directory: /docs
     schedule:
-      interval: weekly
+      interval: daily
     groups:
       docs:
         patterns: ['*']
